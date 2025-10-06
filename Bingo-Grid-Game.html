@@ -1,0 +1,1725 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Bingo Quest - Safety Response Challenge</title>
+<style>
+  :root{
+    --pink:#FF6B9D; --purple:#C147E9; --orange:#FFB347; --teal:#4ECDC4; --red:#FF6B6B;
+    --dark:#2C      <div id="scenarioPrompt" style="background:#f0f8ff;padding:16px;border-radius:8px;margin:16px 0"></div>
+      
+      <div class="evaluation-panel">light:#F8F9FA; --white:#fff; --accent:#9B59B6;
+    --ok:#27AE60; --warn:#F39C12; --bad:#E74C3C;
+    --gradient-1: linear-gradient(135deg, #FF6B9D, #C147E9);
+    --gradient-2: linear-gradient(135deg, #FFB347, #FF6B6B);
+    --gradient-3: linear-gradient(135deg, #4ECDC4, #45B7D1);
+  }
+  
+  html,body{height:100%;background:var(--light);color:var(--dark);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;}
+  *{box-sizing:border-box}
+  .container{max-width:1200px;margin:0 auto;padding:24px}
+  .card{background:#fff;border-radius:16px;box-shadow:0 10px 24px rgba(0,0,0,.08);border:1px solid rgba(255,107,157,.1)}
+  
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:12px 18px;border-radius:12px;border:none;cursor:pointer;font-weight:600;transition:all .15s ease}
+  .btn-primary{background:var(--gradient-1);color:#fff;position:relative;overflow:hidden}
+  .btn-primary:hover{transform:translateY(-3px);box-shadow:0 12px 25px rgba(255,107,157,.3)}
+  .btn-outline{background:transparent;border:2px solid var(--dark);color:var(--dark)}
+  .btn-outline:hover{background:var(--dark);color:#fff}
+  
+  .title{font-size:32px;font-weight:800}
+  .subtitle{font-size:18px;opacity:.8}
+  
+  .art-banner{
+     background:
+     radial-gradient(60% 90% at 20% 10%, rgba(255,107,157,.3), transparent 60%),
+     radial-gradient(60% 90% at 80% 0%, rgba(193,71,233,.3), transparent 60%),
+     radial-gradient(40% 70% at 50% 100%, rgba(255,179,71,.25), transparent 50%),
+     linear-gradient(135deg,#fdfdff,#f0f8ff);
+     border:2px solid rgba(255,107,157,.2);border-radius:24px;padding:32px;
+     display:flex;gap:24px;align-items:center;justify-content:space-between;
+     box-shadow: 0 20px 40px rgba(0,0,0,.1), inset 0 1px 0 rgba(255,255,255,.5);
+  }
+  
+  .orb{width:64px;height:64px;border-radius:50%;background:radial-gradient(circle at 30% 30%, #fff, var(--pink));box-shadow:0 15px 35px rgba(255,107,157,.4);animation:float 4s ease-in-out infinite}
+  .orb.alt{background:radial-gradient(circle at 30% 30%, #fff, var(--purple));box-shadow:0 15px 35px rgba(193,71,233,.4)}
+  .orb.orange{background:radial-gradient(circle at 30% 30%, #fff, var(--orange));box-shadow:0 15px 35px rgba(255,179,71,.4)}
+  .orb.teal{background:radial-gradient(circle at 30% 30%, #fff, var(--teal));box-shadow:0 15px 35px rgba(78,205,196,.4)}
+  @keyframes float{0%{transform:translateY(0)}50%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+  
+  .glow{box-shadow:0 0 0 0 rgba(255,107,157,.5);animation:glow 2s infinite}
+  @keyframes glow{0%{box-shadow:0 0 0 0 rgba(255,107,157,.5)}70%{box-shadow:0 0 0 12px rgba(255,107,157,0)}100%{box-shadow:0 0 0 0 rgba(255,107,157,0)}}
+  
+  /* Bingo Grid Styles */
+  .bingo-grid{
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    gap:8px;
+    max-width:600px;
+    margin:0 auto;
+  }
+  
+  .bingo-cell{
+    aspect-ratio:1;
+    background:#fff;
+    border:3px solid #e0e0e0;
+    border-radius:12px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    transition:all .2s ease;
+    position:relative;
+    min-height:100px;
+  }
+  
+  .bingo-cell:hover{
+    border-color:var(--pink);
+    transform:scale(1.05);
+    box-shadow:0 8px 20px rgba(255,107,157,.3);
+  }
+  
+  .bingo-cell.selected{
+    background:var(--gradient-1);
+    color:#fff;
+    border-color:var(--pink);
+  }
+  
+  .bingo-cell.used{
+    background:#f0f0f0;
+    color:#888;
+    cursor:not-allowed;
+    opacity:0.6;
+  }
+  
+  .cell-number{
+    font-size:24px;
+    font-weight:800;
+    margin-bottom:4px;
+  }
+  
+  .cell-company{
+    font-size:10px;
+    text-align:center;
+    opacity:0.8;
+    line-height:1.2;
+  }
+  
+  /* Game Screens */
+  .screen{display:none}
+  .screen.active{display:block}
+  
+  .team-setup{
+    display:flex;
+    gap:24px;
+    margin:24px 0;
+  }
+  
+  .team-input{
+    flex:1;
+  }
+  
+  .team-input label{
+    display:block;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+  
+  .team-input input{
+    width:100%;
+    padding:16px;
+    border:2px solid #e0e0e0;
+    border-radius:12px;
+    font-size:16px;
+  }
+  
+  .team-input.team1 input{border-left:4px solid var(--pink)}
+  .team-input.team2 input{border-left:4px solid var(--purple)}
+  
+  .game-header{
+    background:var(--gradient-1);
+    color:#fff;
+    padding:20px;
+    border-radius:16px 16px 0 0;
+    text-align:center;
+  }
+  
+  .score-display{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:16px;
+    background:#fff;
+    border:1px solid #e0e0e0;
+    border-radius:0 0 16px 16px;
+  }
+  
+  .team-score{
+    text-align:center;
+  }
+  
+  .scenario-panel{
+    margin:24px 0;
+    padding:24px;
+    background:#fff;
+    border-radius:16px;
+    border:1px solid #e0e0e0;
+  }
+  
+  .evaluation-panel{
+    background:#f8f9fa;
+    padding:20px;
+    border-radius:12px;
+    margin:16px 0;
+  }
+  
+  .checkbox-group{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:12px;
+    margin:16px 0;
+  }
+  
+  .checkbox-item{
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:8px;
+    background:#fff;
+    border-radius:8px;
+    border:1px solid #e0e0e0;
+  }
+  
+  .checkbox-item input[type="checkbox"]{
+    width:20px;
+    height:20px;
+    cursor:pointer;
+  }
+  
+  .hidden{display:none}
+  .flex{display:flex}
+  .gap-12{gap:12px}
+  .mt-24{margin-top:24px}
+  .text-center{text-align:center}
+  .w-full{width:100%}
+  
+  .current-turn{
+    background:var(--gradient-2);
+    color:#fff;
+    padding:16px;
+    border-radius:12px;
+    text-align:center;
+    margin:16px 0;
+    font-weight:600;
+  }
+  
+  .timer-header{
+    background:var(--gradient-1);
+    color:#fff;
+    padding:16px;
+    text-align:center;
+    font-weight:600;
+  }
+  
+  .score-mini{
+    font-size:18px;
+  }
+  
+  .timer-display{
+    text-align:center;
+    padding:40px;
+    margin:0;
+  }
+  
+  .scenario-panel{
+    max-width:800px;
+    margin:0 auto;
+    padding:32px;
+  }
+  
+  .scenario-prompt{
+    background:#f0f8ff;
+    padding:24px;
+    border-radius:16px;
+    font-size:18px;
+    line-height:1.6;
+    border-left:6px solid var(--pink);
+    box-shadow:0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .timer-circle{
+    width:200px;
+    height:200px;
+    border-radius:50%;
+    background:conic-gradient(var(--pink) var(--timer-progress, 0deg), #e0e0e0 0deg);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin:0 auto 24px;
+    position:relative;
+  }
+  
+  .timer-circle::before{
+    content:'';
+    position:absolute;
+    width:160px;
+    height:160px;
+    background:#fff;
+    border-radius:50%;
+  }
+  
+  .timer-text{
+    position:relative;
+    z-index:2;
+    text-align:center;
+  }
+  
+  #timerValue{
+    font-size:48px;
+    font-weight:800;
+    color:var(--dark);
+  }
+  
+  #timerLabel{
+    font-size:14px;
+    color:var(--accent);
+    font-weight:600;
+    margin-top:8px;
+  }
+  
+  .phase-instruction{
+    font-size:18px;
+    font-weight:600;
+    color:var(--accent);
+    background:rgba(255,107,157,0.1);
+    padding:12px 24px;
+    border-radius:12px;
+    display:inline-block;
+  }
+  
+  /* Celebration Screen Styles */
+  .celebration-header{
+    background:linear-gradient(135deg, #FF6B9D, #C147E9, #FFB347, #4ECDC4);
+    background-size: 400% 400%;
+    animation: gradientShift 3s ease infinite;
+    color:#fff;
+    padding:40px 20px;
+    text-align:center;
+    position:relative;
+    overflow:hidden;
+  }
+  
+  @keyframes gradientShift{
+    0%{background-position:0% 50%}
+    50%{background-position:100% 50%}
+    100%{background-position:0% 50%}
+  }
+  
+  .floating-elements{
+    position:absolute;
+    inset:0;
+    pointer-events:none;
+  }
+  
+  .celebration-orb{
+    position:absolute;
+    animation:float 4s ease-in-out infinite, drift 8s linear infinite;
+  }
+  
+  .celebration-orb:nth-child(1){top:20%;left:10%;animation-delay:0s}
+  .celebration-orb:nth-child(2){top:30%;right:15%;animation-delay:1s}
+  .celebration-orb:nth-child(3){bottom:25%;left:20%;animation-delay:2s}
+  .celebration-orb:nth-child(4){bottom:20%;right:10%;animation-delay:3s}
+  
+  @keyframes drift{
+    0%{transform:translateX(0)}
+    50%{transform:translateX(20px)}
+    100%{transform:translateX(0)}
+  }
+  
+  .celebration-content{
+    position:relative;
+    z-index:2;
+  }
+  
+  .celebration-title{
+    font-size:48px;
+    font-weight:900;
+    margin-bottom:16px;
+    text-shadow:2px 2px 4px rgba(0,0,0,0.3);
+  }
+  
+  .celebration-subtitle{
+    font-size:22px;
+    opacity:0.9;
+    margin-bottom:24px;
+  }
+  
+  .winner-banner{
+    background:rgba(255,255,255,0.2);
+    padding:16px 32px;
+    border-radius:50px;
+    font-size:24px;
+    font-weight:700;
+    display:inline-block;
+    backdrop-filter:blur(10px);
+    border:2px solid rgba(255,255,255,0.3);
+  }
+  
+  .score-comparison{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:40px 20px;
+    background:#f8f9fa;
+    gap:40px;
+  }
+  
+  .team-result{
+    text-align:center;
+    background:#fff;
+    padding:32px;
+    border-radius:20px;
+    box-shadow:0 10px 30px rgba(0,0,0,0.1);
+    min-width:200px;
+    transition:transform 0.3s ease;
+  }
+  
+  .team-result:hover{
+    transform:translateY(-5px);
+  }
+  
+  .team1-result{
+    border-top:6px solid var(--pink);
+  }
+  
+  .team2-result{
+    border-top:6px solid var(--purple);
+  }
+  
+  .team-avatar{
+    font-size:48px;
+    margin-bottom:16px;
+  }
+  
+  .team-name{
+    font-size:24px;
+    font-weight:700;
+    margin-bottom:12px;
+  }
+  
+  .team1-result .team-name{
+    color:var(--pink);
+  }
+  
+  .team2-result .team-name{
+    color:var(--purple);
+  }
+  
+  .team-score-large{
+    font-size:64px;
+    font-weight:900;
+    line-height:1;
+    margin-bottom:8px;
+  }
+  
+  .score-label{
+    color:#666;
+    font-size:16px;
+    margin-bottom:16px;
+  }
+  
+  .team-percentage{
+    background:var(--gradient-1);
+    color:#fff;
+    padding:8px 16px;
+    border-radius:20px;
+    font-weight:600;
+    display:inline-block;
+  }
+  
+  .vs-divider{
+    text-align:center;
+  }
+  
+  .vs-text{
+    font-size:36px;
+    font-weight:900;
+    color:#666;
+    margin-bottom:12px;
+  }
+  
+  .total-scenarios{
+    color:#888;
+    font-size:14px;
+  }
+  
+  .performance-breakdown{
+    padding:40px 20px;
+    background:#fff;
+  }
+  
+  .breakdown-title{
+    text-align:center;
+    font-size:32px;
+    font-weight:800;
+    margin-bottom:40px;
+    background:var(--gradient-1);
+    -webkit-background-clip:text;
+    -webkit-text-fill-color:transparent;
+    background-clip:text;
+  }
+  
+  .team-analysis{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:32px;
+    max-width:1000px;
+    margin:0 auto;
+  }
+  
+  .analysis-card{
+    background:#f8f9fa;
+    padding:32px;
+    border-radius:20px;
+    border:1px solid #e0e0e0;
+  }
+  
+  .team1-analysis{
+    border-left:6px solid var(--pink);
+  }
+  
+  .team2-analysis{
+    border-left:6px solid var(--purple);
+  }
+  
+  .analysis-header{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    margin-bottom:24px;
+    font-size:20px;
+    font-weight:700;
+  }
+  
+  .team-icon{
+    font-size:24px;
+  }
+  
+  .analysis-score{
+    background:var(--gradient-1);
+    color:#fff;
+    padding:6px 12px;
+    border-radius:12px;
+    font-size:16px;
+  }
+  
+  .strength-areas, .improvement-areas{
+    margin-bottom:24px;
+  }
+  
+  .strength-areas h4{
+    color:var(--ok);
+    margin-bottom:12px;
+  }
+  
+  .improvement-areas h4{
+    color:var(--warn);
+    margin-bottom:12px;
+  }
+  
+  .strength-list, .improvement-list{
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+  }
+  
+  .strength-item{
+    background:#e8f5e8;
+    color:var(--ok);
+    padding:8px 12px;
+    border-radius:8px;
+    font-size:14px;
+  }
+  
+  .improvement-item{
+    background:#fff3cd;
+    color:var(--warn);
+    padding:8px 12px;
+    border-radius:8px;
+    font-size:14px;
+  }
+  
+  .performance-gauge{
+    text-align:center;
+  }
+  
+  .gauge-label{
+    font-weight:600;
+    margin-bottom:12px;
+    color:#666;
+  }
+  
+  .gauge-bar{
+    width:100%;
+    height:20px;
+    background:#e0e0e0;
+    border-radius:10px;
+    overflow:hidden;
+    margin-bottom:8px;
+  }
+  
+  .gauge-fill{
+    height:100%;
+    border-radius:10px;
+    transition:width 2s ease-in-out;
+  }
+  
+  .team1-gauge{
+    background:linear-gradient(90deg, var(--pink), var(--purple));
+  }
+  
+  .team2-gauge{
+    background:linear-gradient(90deg, var(--purple), var(--orange));
+  }
+  
+  .gauge-text{
+    font-weight:700;
+    font-size:18px;
+  }
+  
+  .evaluation-summary{
+    padding:40px 20px;
+    background:#fff;
+    border-bottom:1px solid #e0e0e0;
+  }
+  
+  .summary-title{
+    text-align:center;
+    font-size:28px;
+    font-weight:800;
+    margin-bottom:32px;
+    color:var(--dark);
+  }
+  
+  .criteria-comparison{
+    max-width:900px;
+    margin:0 auto;
+  }
+  
+  .criteria-chart{
+    background:#f8f9fa;
+    border-radius:16px;
+    padding:24px;
+    border:1px solid #e0e0e0;
+  }
+  
+  .chart-header{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr;
+    gap:16px;
+    margin-bottom:20px;
+    font-weight:700;
+    padding-bottom:12px;
+    border-bottom:2px solid #e0e0e0;
+  }
+  
+  .criteria-label{
+    font-size:16px;
+    color:var(--dark);
+  }
+  
+  .team-header{
+    text-align:center;
+    font-size:16px;
+  }
+  
+  .team1-header{
+    color:var(--pink);
+  }
+  
+  .team2-header{
+    color:var(--purple);
+  }
+  
+  .criteria-row{
+    display:grid;
+    grid-template-columns:2fr 1fr 1fr;
+    gap:16px;
+    align-items:center;
+    padding:12px 0;
+    border-bottom:1px solid #e8e8e8;
+  }
+  
+  .criteria-name{
+    font-weight:600;
+    font-size:14px;
+  }
+  
+  .criteria-bar{
+    position:relative;
+    height:32px;
+    background:#e0e0e0;
+    border-radius:16px;
+    overflow:hidden;
+  }
+  
+  .bar-fill{
+    height:100%;
+    border-radius:16px;
+    transition:width 1.5s ease-in-out;
+    width:0;
+  }
+  
+  .team1-bar .bar-fill{
+    background:linear-gradient(90deg, var(--pink), rgba(255,107,157,0.8));
+  }
+  
+  .team2-bar .bar-fill{
+    background:linear-gradient(90deg, var(--purple), rgba(193,71,233,0.8));
+  }
+  
+  .bar-text{
+    position:absolute;
+    top:50%;
+    left:50%;
+    transform:translate(-50%, -50%);
+    font-size:12px;
+    font-weight:700;
+    color:#fff;
+    text-shadow:1px 1px 2px rgba(0,0,0,0.5);
+  }
+  
+  .action-buttons{
+    text-align:center;
+    padding:40px 20px;
+    background:#f8f9fa;
+  }
+  
+  .celebration-btn{
+    margin:0 12px;
+    font-size:18px;
+    padding:16px 32px;
+  }
+  
+  @media (max-width: 768px) {
+    .bingo-grid{max-width:400px}
+    .team-setup{flex-direction:column}
+    .bingo-cell{min-height:80px}
+    .cell-number{font-size:18px}
+    .team-analysis{grid-template-columns:1fr}
+    .score-comparison{flex-direction:column;gap:20px}
+    .celebration-title{font-size:36px}
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- START SCREEN -->
+  <div id="startScreen" class="screen active">
+    <div class="card" style="padding:32px">
+      <div class="art-banner">
+        <div class="orb glow"></div>
+        <div class="orb alt"></div>
+        <div style="text-align:center;flex:1">
+          <div class="title" style="background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">🎯 Bingo Quest 🎯</div>
+          <div class="subtitle">Safety Response Challenge - Team Competition</div>
+        </div>
+        <div class="orb orange"></div>
+        <div class="orb teal"></div>
+      </div>
+      
+      <div class="team-setup">
+        <div class="team-input team1">
+          <label for="team1Name">🏆 Team 1 Name:</label>
+          <input id="team1Name" type="text" placeholder="Enter Team 1 name" maxlength="20">
+        </div>
+        <div class="team-input team2">
+          <label for="team2Name">🎯 Team 2 Name:</label>
+          <input id="team2Name" type="text" placeholder="Enter Team 2 name" maxlength="20">
+        </div>
+      </div>
+      
+      <div class="text-center mt-24">
+        <button id="startGameBtn" class="btn btn-primary" disabled>🚀 Start Game</button>
+      </div>
+      
+      <div class="mt-24" style="background:#f8f9fa;padding:20px;border-radius:12px">
+        <h3>📋 How to Play:</h3>
+        <ul>
+          <li>Teams take turns selecting numbers from the 4x5 grid (20 total) for the opposing team</li>
+          <li>Each number reveals a customer safety scenario</li>
+          <li>The responding team provides a consultant response</li>
+          <li>Trainer evaluates based on 5 customer service excellence elements</li>
+          <li>Score is out of 5 points per scenario</li>
+          <li>Highest total score wins!</li>
+        </ul>
+        
+        <h4>🎯 Evaluation Criteria:</h4>
+        <div style="background:#e8f4fd;padding:12px;border-radius:8px;margin-top:12px">
+          <strong>1. 🎩 Professionalism</strong> - Professional tone and demeanor<br>
+          <strong>2. ❤️ Empathy & Understanding</strong> - Genuine concern for safety<br>
+          <strong>3. 📋 Action Plan</strong> - Clear steps to address the issue<br>
+          <strong>4. 🛡️ Accountability</strong> - Taking responsibility with remedies<br>
+          <strong>5. 🔄 Follow-up Commitment</strong> - Ongoing monitoring assurance
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME SCREEN -->
+  <div id="gameScreen" class="screen">
+    <div class="game-header">
+      <h1>🎯 Bingo Quest - Safety Response Challenge</h1>
+      <div id="currentTurn" class="current-turn">Team 1's turn to select a number for Team 2</div>
+    </div>
+    
+    <div class="score-display">
+      <div class="team-score">
+        <div style="color:var(--pink);font-weight:bold" id="team1Display">Team 1</div>
+        <div style="font-size:24px;font-weight:800" id="team1Score">0</div>
+      </div>
+      <div style="font-size:18px;opacity:0.6">Round <span id="roundNumber">1</span></div>
+      <div class="team-score">
+        <div style="color:var(--purple);font-weight:bold" id="team2Display">Team 2</div>
+        <div style="font-size:24px;font-weight:800" id="team2Score">0</div>
+      </div>
+    </div>
+
+    <div class="mt-24">
+      <div class="bingo-grid" id="bingoGrid">
+        <!-- Grid cells will be generated by JavaScript -->
+      </div>
+    </div>
+  </div>
+
+  <!-- TIMER/SCENARIO SCREEN -->
+  <div id="timerScreen" class="screen">
+    <div class="timer-header">
+      <div class="score-mini">
+        <span id="timerTeam1Display">Team 1: 0</span>
+        <span style="margin:0 20px;opacity:0.6">Round <span id="timerRoundNumber">1</span></span>
+        <span id="timerTeam2Display">Team 2: 0</span>
+      </div>
+    </div>
+
+    <!-- Timer Display -->
+    <div id="timerDisplay" class="timer-display">
+      <div class="timer-circle">
+        <div class="timer-text">
+          <div id="timerValue">60</div>
+          <div id="timerLabel">Discussion Time</div>
+        </div>
+      </div>
+      <div id="phaseInstruction" class="phase-instruction">Team discussion phase - Plan your response strategy</div>
+      <button id="skipTimerBtn" class="btn btn-outline mt-24">⏩ Skip Timer - Ready to Respond</button>
+    </div>
+
+    <!-- Scenario Panel -->
+    <div id="scenarioPanel" class="scenario-panel">
+      <h2 id="scenarioTitle" style="text-align:center;margin-bottom:24px">Scenario Title</h2>
+      <div id="scenarioPrompt" class="scenario-prompt"></div>
+    </div>
+    
+    <!-- Evaluation Panel (Hidden initially) -->
+    <div id="evaluationPanel" class="evaluation-panel hidden">
+          <h4>🎯 Trainer Evaluation - Customer Service Excellence Framework:</h4>
+          <div class="checkbox-group">
+            <div class="checkbox-item">
+              <input type="checkbox" id="professionalism" name="evaluation">
+              <label for="professionalism">🎩 Professionalism - Maintained professional tone and demeanor</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="empathy" name="evaluation">
+              <label for="empathy">❤️ Empathy & Understanding - Showed genuine concern for customer's safety</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="actionplan" name="evaluation">
+              <label for="actionplan">📋 Action Plan - Provided clear steps to address the issue</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="accountability" name="evaluation">
+              <label for="accountability">🛡️ Accountability - Took responsibility and offered appropriate remedies</label>
+            </div>
+            <div class="checkbox-item">
+              <input type="checkbox" id="followup" name="evaluation">
+              <label for="followup">🔄 Follow-up Commitment - Assured ongoing monitoring and prevention</label>
+            </div>
+          </div>        <div class="flex gap-12 mt-24">
+          <button id="submitEvaluation" class="btn btn-primary">📊 Submit Evaluation</button>
+          <button id="cancelScenario" class="btn btn-outline">❌ Cancel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- GAME OVER SCREEN -->
+  <div id="gameOverScreen" class="screen">
+    <div class="card" style="padding:32px">
+      <div class="art-banner">
+        <div class="orb glow"></div>
+        <div class="orb alt"></div>
+        <div class="orb orange"></div>
+        <div style="text-align:center;flex:1">
+          <div class="title" style="background:var(--gradient-1);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;">🏆 Game Complete! 🏆</div>
+          <div class="subtitle">🎆 Congratulations to both teams! 🎆</div>
+        </div>
+        <div class="orb teal"></div>
+        <div class="orb glow"></div>
+      </div>
+      
+      <div class="mt-24">
+        <div id="winnerAnnouncement" class="current-turn" style="font-size:24px">Winner Announcement</div>
+        
+        <div class="flex gap-12 mt-24" style="justify-content:space-around">
+          <div class="team-score card" style="padding:24px;flex:1">
+            <div style="color:var(--pink);font-weight:bold;font-size:20px" id="finalTeam1Name">Team 1</div>
+            <div style="font-size:48px;font-weight:800" id="finalTeam1Score">0</div>
+            <div style="opacity:0.7">Final Score</div>
+          </div>
+          <div class="team-score card" style="padding:24px;flex:1">
+            <div style="color:var(--purple);font-weight:bold;font-size:20px" id="finalTeam2Name">Team 2</div>
+            <div style="font-size:48px;font-weight:800" id="finalTeam2Score">0</div>
+            <div style="opacity:0.7">Final Score</div>
+          </div>
+        </div>
+        
+        <!-- Evaluation Summary Section -->
+        <div class="evaluation-summary">
+          <div class="summary-title">📊 Trainer Evaluation Summary</div>
+          
+          <div class="criteria-comparison">
+            <div class="criteria-chart">
+              <div class="chart-header">
+                <div class="criteria-label">Evaluation Criteria</div>
+                <div class="team-header team1-header" id="criteriaTeam1Name">Team A</div>
+                <div class="team-header team2-header" id="criteriaTeam2Name">Team B</div>
+              </div>
+              
+              <div class="criteria-row">
+                <div class="criteria-name">👔 Professionalism</div>
+                <div class="criteria-bar team1-bar">
+                  <div class="bar-fill" id="professionalism-team1-bar"></div>
+                  <div class="bar-text" id="professionalism-team1-text">0%</div>
+                </div>
+                <div class="criteria-bar team2-bar">
+                  <div class="bar-fill" id="professionalism-team2-bar"></div>
+                  <div class="bar-text" id="professionalism-team2-text">0%</div>
+                </div>
+              </div>
+              
+              <div class="criteria-row">
+                <div class="criteria-name">💝 Empathy</div>
+                <div class="criteria-bar team1-bar">
+                  <div class="bar-fill" id="empathy-team1-bar"></div>
+                  <div class="bar-text" id="empathy-team1-text">0%</div>
+                </div>
+                <div class="criteria-bar team2-bar">
+                  <div class="bar-fill" id="empathy-team2-bar"></div>
+                  <div class="bar-text" id="empathy-team2-text">0%</div>
+                </div>
+              </div>
+              
+              <div class="criteria-row">
+                <div class="criteria-name">📋 Action Plan</div>
+                <div class="criteria-bar team1-bar">
+                  <div class="bar-fill" id="actionplan-team1-bar"></div>
+                  <div class="bar-text" id="actionplan-team1-text">0%</div>
+                </div>
+                <div class="criteria-bar team2-bar">
+                  <div class="bar-fill" id="actionplan-team2-bar"></div>
+                  <div class="bar-text" id="actionplan-team2-text">0%</div>
+                </div>
+              </div>
+              
+              <div class="criteria-row">
+                <div class="criteria-name">🎯 Accountability</div>
+                <div class="criteria-bar team1-bar">
+                  <div class="bar-fill" id="accountability-team1-bar"></div>
+                  <div class="bar-text" id="accountability-team1-text">0%</div>
+                </div>
+                <div class="criteria-bar team2-bar">
+                  <div class="bar-fill" id="accountability-team2-bar"></div>
+                  <div class="bar-text" id="accountability-team2-text">0%</div>
+                </div>
+              </div>
+              
+              <div class="criteria-row">
+                <div class="criteria-name">📞 Follow-up</div>
+                <div class="criteria-bar team1-bar">
+                  <div class="bar-fill" id="followup-team1-bar"></div>
+                  <div class="bar-text" id="followup-team1-text">0%</div>
+                </div>
+                <div class="criteria-bar team2-bar">
+                  <div class="bar-fill" id="followup-team2-bar"></div>
+                  <div class="bar-text" id="followup-team2-text">0%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="text-center mt-24">
+          <button id="playAgainBtn" class="btn btn-primary">🔄 Play Again</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// Game State
+let gameState = {
+  team1Name: '',
+  team2Name: '',
+  team1Score: 0,
+  team2Score: 0,
+  currentTeam: 1, // 1 or 2 (team selecting for the other team)
+  round: 1,
+  usedCells: new Set(),
+  scenarios: [],
+  currentPhase: 'selection', // 'selection', 'discussion', 'response', 'evaluation'
+  currentScenario: null,
+  currentCellNumber: null,
+  timer: null,
+  timeRemaining: 0,
+  // Detailed evaluation tracking
+  team1Evaluations: {
+    professionalism: 0,
+    empathy: 0,
+    actionplan: 0,
+    accountability: 0,
+    followup: 0,
+    totalScenarios: 0
+  },
+  team2Evaluations: {
+    professionalism: 0,
+    empathy: 0,
+    actionplan: 0,
+    accountability: 0,
+    followup: 0,
+    totalScenarios: 0
+  }
+};
+
+// 20 Safety Scenarios for 4x5 Grid
+const SCENARIOS = [
+  {
+    id: 1,
+    title: "Driver Speeding Complaint",
+    prompt: "Customer: Hi, I need to report that my driver was driving way over the speed limit and running red lights. I felt very unsafe during the entire ride yesterday evening."
+  },
+  {
+    id: 2,
+    title: "Intoxicated Driver Report",
+    prompt: "Customer: I'm calling because my driver smelled strongly of alcohol and was swerving. I had to ask him to pull over and I got out of the car."
+  },
+  {
+    id: 3,
+    title: "Phone Use While Driving",
+    prompt: "Customer: The driver was constantly on his phone, texting and making calls throughout my 20-minute ride. This is completely unacceptable and dangerous."
+  },
+  {
+    id: 4,
+    title: "Aggressive Driving Behavior",
+    prompt: "Customer: My driver was extremely aggressive, tailgating other cars, honking excessively, and making dangerous lane changes without signaling."
+  },
+  {
+    id: 5,
+    title: "Vehicle Safety Issues",
+    prompt: "Customer: The car had bald tires, the seatbelt was broken, and there was a strong smell of gas. I'm concerned about the vehicle's safety inspection."
+  },
+  {
+    id: 6,
+    title: "Driver Fell Asleep",
+    prompt: "Customer: During my ride, the driver started nodding off and the car drifted into the other lane. I had to wake him up. This is terrifying!"
+  },
+  {
+    id: 7,
+    title: "Harassment by Driver",
+    prompt: "Customer: The driver made inappropriate comments, asked for my personal information, and made me feel very uncomfortable and unsafe."
+  },
+  {
+    id: 8,
+    title: "Accident During Ride",
+    prompt: "Customer: We were in a car accident during my ride. The driver rear-ended another car at a stop sign. I think he was distracted."
+  },
+  {
+    id: 9,
+    title: "No Valid License",
+    prompt: "Customer: I discovered that my driver doesn't have a valid driver's license. When I asked to see it, he became evasive and refused to show it."
+  },
+  {
+    id: 10,
+    title: "Drug Use Suspicion",
+    prompt: "Customer: I suspect my driver was under the influence of drugs. His behavior was erratic, pupils dilated, and he was making strange comments."
+  },
+  {
+    id: 11,
+    title: "Refusing Service Animal",
+    prompt: "Customer: The driver refused to let my certified service dog in the car, even after I showed him the proper documentation. This is discrimination."
+  },
+  {
+    id: 12,
+    title: "Route Manipulation",
+    prompt: "Customer: The driver deliberately took a much longer route to increase the fare, ignoring my directions and GPS suggestions for a shorter path."
+  },
+  {
+    id: 13,
+    title: "Vehicle Hygiene Issues",
+    prompt: "Customer: The car was filthy, smelled terrible, and I'm worried about health hazards. There was food debris and stains everywhere."
+  },
+  {
+    id: 14,
+    title: "Threatening Behavior",
+    prompt: "Customer: When I questioned the fare, the driver became verbally aggressive and threatened me. I felt scared for my safety."
+  },
+  {
+    id: 15,
+    title: "Child Safety Concern",
+    prompt: "Customer: The driver didn't have proper child safety seats available as promised, and insisted my 4-year-old could just use a regular seatbelt."
+  },
+  {
+    id: 16,
+    title: "GPS Tracking Disabled",
+    prompt: "Customer: I noticed the driver had disabled GPS tracking and took me to an unfamiliar area. I was genuinely afraid for my safety."
+  },
+  {
+    id: 17,
+    title: "Medical Emergency Ignored",
+    prompt: "Customer: During the ride, I had a medical emergency and asked to go to the hospital, but the driver refused and insisted on the original destination."
+  },
+  {
+    id: 18,
+    title: "Unlicensed Vehicle",
+    prompt: "Customer: The car had expired registration, no insurance card visible, and looked nothing like the vehicle shown in the app. Is this even legal?"
+  },
+  {
+    id: 19,
+    title: "Driver Road Rage",
+    prompt: "Customer: My driver got into a road rage incident with another driver, got out of the car to confront them, leaving me alone and scared."
+  },
+  {
+    id: 20,
+    title: "Privacy Violation",
+    prompt: "Customer: I caught the driver taking photos of me without permission and he was asking very personal questions about where I live and work."
+  }
+];
+
+// DOM Elements
+const startScreen = document.getElementById('startScreen');
+const gameScreen = document.getElementById('gameScreen');
+const gameOverScreen = document.getElementById('gameOverScreen');
+const team1Input = document.getElementById('team1Name');
+const team2Input = document.getElementById('team2Name');
+const startGameBtn = document.getElementById('startGameBtn');
+const bingoGrid = document.getElementById('bingoGrid');
+const scenarioPanel = document.getElementById('scenarioPanel');
+
+// Initialize
+function init() {
+  createBingoGrid();
+  setupEventListeners();
+}
+
+// Create 4x5 Bingo Grid (20 cells)
+function createBingoGrid() {
+  bingoGrid.innerHTML = '';
+  for (let i = 1; i <= 20; i++) {
+    const cell = document.createElement('div');
+    cell.className = 'bingo-cell';
+    cell.dataset.number = i;
+    
+    cell.innerHTML = `
+      <div class="cell-number">${i}</div>
+    `;
+    
+    cell.addEventListener('click', () => selectCell(i));
+    bingoGrid.appendChild(cell);
+  }
+}
+
+// Setup Event Listeners
+function setupEventListeners() {
+  team1Input.addEventListener('input', checkStartButton);
+  team2Input.addEventListener('input', checkStartButton);
+  startGameBtn.addEventListener('click', startGame);
+  document.getElementById('submitEvaluation').addEventListener('click', submitEvaluation);
+  document.getElementById('cancelScenario').addEventListener('click', cancelScenario);
+  document.getElementById('skipTimerBtn').addEventListener('click', skipTimer);
+  document.getElementById('playAgainBtn').addEventListener('click', resetGame);
+  document.getElementById('shareResultsBtn').addEventListener('click', () => {
+    alert('🎉 Great game! Results ready to share with your team!');
+  });
+}
+
+function checkStartButton() {
+  const team1 = team1Input.value.trim();
+  const team2 = team2Input.value.trim();
+  startGameBtn.disabled = !team1 || !team2;
+}
+
+function startGame() {
+  gameState.team1Name = team1Input.value.trim();
+  gameState.team2Name = team2Input.value.trim();
+  
+  document.getElementById('team1Display').textContent = gameState.team1Name;
+  document.getElementById('team2Display').textContent = gameState.team2Name;
+  
+  updateCurrentTurn();
+  showScreen('gameScreen');
+}
+
+function showScreen(screenId) {
+  document.querySelectorAll('.screen').forEach(screen => {
+    screen.classList.remove('active');
+  });
+  document.getElementById(screenId).classList.add('active');
+}
+
+function selectCell(number) {
+  if (gameState.usedCells.has(number)) return;
+  if (gameState.currentPhase !== 'selection') return;
+  
+  const scenario = SCENARIOS[number - 1];
+  const cell = document.querySelector(`[data-number="${number}"]`);
+  
+  // Mark cell as selected
+  cell.classList.add('selected');
+  gameState.usedCells.add(number);
+  gameState.currentScenario = scenario;
+  gameState.currentCellNumber = number;
+  
+  // Start discussion phase
+  startDiscussionPhase(scenario, number);
+}
+
+function startDiscussionPhase(scenario, cellNumber) {
+  gameState.currentPhase = 'discussion';
+  
+  // Show scenario details
+  document.getElementById('scenarioTitle').textContent = `${scenario.title} (Cell ${cellNumber})`;
+  document.getElementById('scenarioPrompt').textContent = scenario.prompt;
+  
+  // Update timer screen scores
+  updateTimerScreenScores();
+  
+  // Switch to timer screen
+  showScreen('timerScreen');
+  
+  // Show skip button for discussion phase
+  document.getElementById('skipTimerBtn').style.display = 'inline-flex';
+  
+  // Start 60-second discussion timer
+  startTimer(60, 'Discussion Time', 'Team discussion phase - Plan your response strategy', () => {
+    startResponsePhase();
+  });
+}
+
+function updateTimerScreenScores() {
+  document.getElementById('timerTeam1Display').textContent = `${gameState.team1Name}: ${gameState.team1Score}`;
+  document.getElementById('timerTeam2Display').textContent = `${gameState.team2Name}: ${gameState.team2Score}`;
+  document.getElementById('timerRoundNumber').textContent = gameState.round;
+}
+
+function startResponsePhase() {
+  gameState.currentPhase = 'response';
+  
+  // Show skip button during response phase
+  document.getElementById('skipTimerBtn').style.display = 'inline-flex';
+  
+  // Start 30-second response timer
+  startTimer(30, 'Response Time', 'Team response phase - Present your solution to the trainer', () => {
+    startEvaluationPhase();
+  });
+}
+
+function startEvaluationPhase() {
+  gameState.currentPhase = 'evaluation';
+  
+  // Hide timer and skip button
+  document.getElementById('timerDisplay').classList.add('hidden');
+  document.getElementById('skipTimerBtn').style.display = 'none';
+  
+  // Show evaluation panel
+  document.getElementById('evaluationPanel').classList.remove('hidden');
+  
+  // Clear checkboxes
+  document.querySelectorAll('input[name="evaluation"]').forEach(cb => cb.checked = false);
+}
+
+function skipTimer() {
+  if (gameState.currentPhase === 'discussion') {
+    // Skip to response phase
+    clearInterval(gameState.timer);
+    startResponsePhase();
+  } else if (gameState.currentPhase === 'response') {
+    // Skip to evaluation phase
+    clearInterval(gameState.timer);
+    startEvaluationPhase();
+  }
+}
+
+function startTimer(seconds, label, instruction, onComplete) {
+  gameState.timeRemaining = seconds;
+  
+  document.getElementById('timerValue').textContent = seconds;
+  document.getElementById('timerLabel').textContent = label;
+  document.getElementById('phaseInstruction').textContent = instruction;
+  document.getElementById('timerDisplay').classList.remove('hidden');
+  
+  // Clear existing timer
+  if (gameState.timer) {
+    clearInterval(gameState.timer);
+  }
+  
+  gameState.timer = setInterval(() => {
+    gameState.timeRemaining--;
+    document.getElementById('timerValue').textContent = gameState.timeRemaining;
+    
+    // Update progress circle
+    const progress = ((seconds - gameState.timeRemaining) / seconds) * 360;
+    document.querySelector('.timer-circle').style.setProperty('--timer-progress', `${progress}deg`);
+    
+    // Change color when time is running low
+    if (gameState.timeRemaining <= 10) {
+      document.querySelector('.timer-circle').style.background = `conic-gradient(var(--red) ${progress}deg, #e0e0e0 0deg)`;
+    }
+    
+    if (gameState.timeRemaining <= 0) {
+      clearInterval(gameState.timer);
+      onComplete();
+    }
+  }, 1000);
+}
+
+function submitEvaluation() {
+  const checkedBoxes = document.querySelectorAll('input[name="evaluation"]:checked');
+  const score = checkedBoxes.length;
+  
+  console.log('submitEvaluation called - checked boxes:', checkedBoxes.length);
+  
+  // Track detailed evaluation criteria
+  const respondingTeam = gameState.currentTeam === 1 ? 2 : 1;
+  const teamEvaluations = respondingTeam === 1 ? gameState.team1Evaluations : gameState.team2Evaluations;
+  
+  console.log('Responding team:', respondingTeam);
+  console.log('Team evaluations before:', JSON.stringify(teamEvaluations));
+  
+  // Track each evaluation criteria
+  checkedBoxes.forEach(checkbox => {
+    const criteriaId = checkbox.id;
+    console.log('Processing criteria:', criteriaId);
+    if (teamEvaluations[criteriaId] !== undefined) {
+      teamEvaluations[criteriaId]++;
+      console.log(`Incremented ${criteriaId} to`, teamEvaluations[criteriaId]);
+    } else {
+      console.log(`Criteria ${criteriaId} not found in teamEvaluations`);
+    }
+  });
+  
+  // Increment total scenarios for this team
+  teamEvaluations.totalScenarios++;
+  console.log('Team evaluations after:', JSON.stringify(teamEvaluations));
+  
+  // Add score to responding team
+  if (respondingTeam === 1) {
+    gameState.team1Score += score;
+    document.getElementById('team1Score').textContent = gameState.team1Score;
+  } else {
+    gameState.team2Score += score;
+    document.getElementById('team2Score').textContent = gameState.team2Score;
+  }
+  
+  // Mark cell as used
+  const selectedCell = document.querySelector('.bingo-cell.selected:not(.used)');
+  if (selectedCell) {
+    selectedCell.classList.add('used');
+    selectedCell.classList.remove('selected');
+  }
+  
+  // Reset for next turn
+  resetForNextTurn();
+  
+  // Check for game end
+  if (gameState.usedCells.size >= 20) { // Game ends after 20 scenarios (10 per team)
+    endGame();
+  }
+}
+
+function resetForNextTurn() {
+  // Clear timer
+  if (gameState.timer) {
+    clearInterval(gameState.timer);
+  }
+  
+  // Hide skip button
+  document.getElementById('skipTimerBtn').style.display = 'none';
+  
+  // Reset timer display
+  document.getElementById('timerDisplay').classList.remove('hidden');
+  document.getElementById('evaluationPanel').classList.add('hidden');
+  
+  // Reset timer circle
+  document.querySelector('.timer-circle').style.setProperty('--timer-progress', '0deg');
+  document.querySelector('.timer-circle').style.background = `conic-gradient(var(--pink) 0deg, #e0e0e0 0deg)`;
+  
+  // Reset game state
+  gameState.currentPhase = 'selection';
+  gameState.currentScenario = null;
+  gameState.currentCellNumber = null;
+  
+  // Return to game screen
+  showScreen('gameScreen');
+  
+  // Switch turns
+  switchTurn();
+}
+
+function cancelScenario() {
+  // Remove selection from cell
+  const selectedCell = document.querySelector('.bingo-cell.selected:not(.used)');
+  if (selectedCell) {
+    selectedCell.classList.remove('selected');
+    const number = parseInt(selectedCell.dataset.number);
+    gameState.usedCells.delete(number);
+  }
+  
+  // Clear timer
+  if (gameState.timer) {
+    clearInterval(gameState.timer);
+  }
+  
+  // Hide skip button
+  document.getElementById('skipTimerBtn').style.display = 'none';
+  
+  // Reset game state
+  gameState.currentPhase = 'selection';
+  gameState.currentScenario = null;
+  gameState.currentCellNumber = null;
+  
+  // Return to game screen
+  showScreen('gameScreen');
+}
+
+function switchTurn() {
+  gameState.currentTeam = gameState.currentTeam === 1 ? 2 : 1;
+  if (gameState.currentTeam === 1) {
+    gameState.round++;
+  }
+  updateCurrentTurn();
+}
+
+function updateCurrentTurn() {
+  const selectingTeam = gameState.currentTeam === 1 ? gameState.team1Name : gameState.team2Name;
+  const respondingTeam = gameState.currentTeam === 1 ? gameState.team2Name : gameState.team1Name;
+  
+  document.getElementById('currentTurn').textContent = 
+    `${selectingTeam}'s turn to select a number for ${respondingTeam}`;
+  document.getElementById('roundNumber').textContent = gameState.round;
+}
+
+function endGame() {
+  console.log('endGame called'); // Debug log
+  console.log('Current game state at end:', JSON.stringify(gameState, null, 2));
+  
+  // Determine winner
+  let winner;
+  if (gameState.team1Score > gameState.team2Score) {
+    winner = `🏆 ${gameState.team1Name} Wins! 🏆`;
+  } else if (gameState.team2Score > gameState.team1Score) {
+    winner = `🏆 ${gameState.team2Name} Wins! 🏆`;
+  } else {
+    winner = `🤝 It's a Tie! Both teams are winners! 🤝`;
+  }
+  
+  // Update basic info with error handling
+  const winnerEl = document.getElementById('winnerAnnouncement');
+  if (winnerEl) winnerEl.textContent = winner;
+  
+  const team1NameEl = document.getElementById('finalTeam1Name');
+  if (team1NameEl) team1NameEl.textContent = gameState.team1Name;
+  
+  const team2NameEl = document.getElementById('finalTeam2Name');
+  if (team2NameEl) team2NameEl.textContent = gameState.team2Name;
+  
+  const team1ScoreEl = document.getElementById('finalTeam1Score');
+  if (team1ScoreEl) team1ScoreEl.textContent = gameState.team1Score;
+  
+  const team2ScoreEl = document.getElementById('finalTeam2Score');
+  if (team2ScoreEl) team2ScoreEl.textContent = gameState.team2Score;
+  
+  // Calculate percentages
+  const maxPossible = 50; // 10 scenarios × 5 points each
+  const team1Percentage = Math.round((gameState.team1Score / maxPossible) * 100);
+  const team2Percentage = Math.round((gameState.team2Score / maxPossible) * 100);
+  
+  const team1PercentEl = document.getElementById('team1Percentage');
+  if (team1PercentEl) team1PercentEl.textContent = `${team1Percentage}%`;
+  
+  const team2PercentEl = document.getElementById('team2Percentage');
+  if (team2PercentEl) team2PercentEl.textContent = `${team2Percentage}%`;
+  
+  // Add some test data if no evaluations exist (for debugging)
+  if (gameState.team1Evaluations.totalScenarios === 0 && gameState.team2Evaluations.totalScenarios === 0) {
+    console.log('No evaluation data found, adding test data for debugging');
+    gameState.team1Evaluations = {
+      professionalism: 3,
+      empathy: 2,
+      actionplan: 4,
+      accountability: 3,
+      followup: 2,
+      totalScenarios: 5
+    };
+    gameState.team2Evaluations = {
+      professionalism: 2,
+      empathy: 4,
+      actionplan: 3,
+      accountability: 2,
+      followup: 3,
+      totalScenarios: 5
+    };
+  }
+  
+  // Update evaluation summary
+  try {
+    updateEvaluationSummary();
+  } catch (error) {
+    console.log('Error in updateEvaluationSummary:', error);
+  }
+  
+  // Update analysis section
+  try {
+    updateTeamAnalysis();
+  } catch (error) {
+    console.log('Error in updateTeamAnalysis:', error);
+  }
+  
+  showScreen('gameOverScreen');
+  console.log('Switched to gameOverScreen'); // Debug log
+  
+  // Animate gauges after screen is shown
+  setTimeout(() => {
+    const team1GaugeEl = document.getElementById('team1Gauge');
+    const team2GaugeEl = document.getElementById('team2Gauge');
+    const team1GaugeTextEl = document.getElementById('team1GaugeText');
+    const team2GaugeTextEl = document.getElementById('team2GaugeText');
+    
+    if (team1GaugeEl) team1GaugeEl.style.width = `${team1Percentage}%`;
+    if (team2GaugeEl) team2GaugeEl.style.width = `${team2Percentage}%`;
+    if (team1GaugeTextEl) team1GaugeTextEl.textContent = `${team1Percentage}%`;
+    if (team2GaugeTextEl) team2GaugeTextEl.textContent = `${team2Percentage}%`;
+  }, 500);
+}
+
+function updateEvaluationSummary() {
+  console.log('updateEvaluationSummary called'); // Debug log
+  console.log('Team 1 evaluations:', gameState.team1Evaluations);
+  console.log('Team 2 evaluations:', gameState.team2Evaluations);
+  
+  // Update team names in criteria header
+  const criteriaTeam1El = document.getElementById('criteriaTeam1Name');
+  if (criteriaTeam1El) criteriaTeam1El.textContent = gameState.team1Name;
+  
+  const criteriaTeam2El = document.getElementById('criteriaTeam2Name');
+  if (criteriaTeam2El) criteriaTeam2El.textContent = gameState.team2Name;
+  
+  // Calculate and display percentages for each criteria
+  const criteria = ['professionalism', 'empathy', 'actionplan', 'accountability', 'followup'];
+  
+  criteria.forEach(criterion => {
+    // Team 1
+    const team1Count = gameState.team1Evaluations[criterion] || 0;
+    const team1Total = gameState.team1Evaluations.totalScenarios || 0;
+    const team1Percentage = team1Total > 0 ? Math.round((team1Count / team1Total) * 100) : 0;
+    
+    const team1BarEl = document.getElementById(`${criterion}-team1-bar`);
+    const team1TextEl = document.getElementById(`${criterion}-team1-text`);
+    
+    console.log(`${criterion} - Team 1: ${team1Count}/${team1Total} = ${team1Percentage}%`);
+    
+    if (team1TextEl) team1TextEl.textContent = `${team1Percentage}%`;
+    
+    // Team 2
+    const team2Count = gameState.team2Evaluations[criterion] || 0;
+    const team2Total = gameState.team2Evaluations.totalScenarios || 0;
+    const team2Percentage = team2Total > 0 ? Math.round((team2Count / team2Total) * 100) : 0;
+    
+    const team2BarEl = document.getElementById(`${criterion}-team2-bar`);
+    const team2TextEl = document.getElementById(`${criterion}-team2-text`);
+    
+    console.log(`${criterion} - Team 2: ${team2Count}/${team2Total} = ${team2Percentage}%`);
+    
+    if (team2TextEl) team2TextEl.textContent = `${team2Percentage}%`;
+    
+    // Animate bars after a delay
+    setTimeout(() => {
+      if (team1BarEl) team1BarEl.style.width = `${team1Percentage}%`;
+      if (team2BarEl) team2BarEl.style.width = `${team2Percentage}%`;
+    }, 800);
+  });
+}
+
+function updateTeamAnalysis() {
+  const maxPossible = 50;
+  
+  // Team 1 Analysis with error handling
+  const analysis1NameEl = document.getElementById('analysis1TeamName');
+  if (analysis1NameEl) analysis1NameEl.textContent = gameState.team1Name;
+  
+  const analysis1ScoreEl = document.getElementById('analysis1Score');
+  if (analysis1ScoreEl) analysis1ScoreEl.textContent = `${gameState.team1Score}/${maxPossible}`;
+  
+  const team1Performance = (gameState.team1Score / maxPossible) * 100;
+  const team1Strengths = getStrengths(team1Performance);
+  const team1Improvements = getImprovements(team1Performance);
+  
+  const team1StrengthsEl = document.getElementById('team1Strengths');
+  if (team1StrengthsEl) {
+    team1StrengthsEl.innerHTML = team1Strengths.map(s => 
+      `<div class="strength-item">✓ ${s}</div>`
+    ).join('');
+  }
+  
+  const team1ImprovementsEl = document.getElementById('team1Improvements');
+  if (team1ImprovementsEl) {
+    team1ImprovementsEl.innerHTML = team1Improvements.map(i => 
+      `<div class="improvement-item">➤ ${i}</div>`
+    ).join('');
+  }
+  
+  // Team 2 Analysis with error handling
+  const analysis2NameEl = document.getElementById('analysis2TeamName');
+  if (analysis2NameEl) analysis2NameEl.textContent = gameState.team2Name;
+  
+  const analysis2ScoreEl = document.getElementById('analysis2Score');
+  if (analysis2ScoreEl) analysis2ScoreEl.textContent = `${gameState.team2Score}/${maxPossible}`;
+  
+  const team2Performance = (gameState.team2Score / maxPossible) * 100;
+  const team2Strengths = getStrengths(team2Performance);
+  const team2Improvements = getImprovements(team2Performance);
+  
+  const team2StrengthsEl = document.getElementById('team2Strengths');
+  if (team2StrengthsEl) {
+    team2StrengthsEl.innerHTML = team2Strengths.map(s => 
+      `<div class="strength-item">✓ ${s}</div>`
+    ).join('');
+  }
+  
+  const team2ImprovementsEl = document.getElementById('team2Improvements');
+  if (team2ImprovementsEl) {
+    team2ImprovementsEl.innerHTML = team2Improvements.map(i => 
+      `<div class="improvement-item">➤ ${i}</div>`
+    ).join('');
+  }
+}
+
+function getStrengths(percentage) {
+  const strengths = [];
+  
+  if (percentage >= 90) {
+    strengths.push('Exceptional customer service skills');
+    strengths.push('Outstanding problem-solving abilities');
+    strengths.push('Excellent communication and empathy');
+  } else if (percentage >= 75) {
+    strengths.push('Strong professional communication');
+    strengths.push('Good accountability and follow-through');
+    strengths.push('Effective action planning');
+  } else if (percentage >= 60) {
+    strengths.push('Shows empathy and understanding');
+    strengths.push('Maintains professional demeanor');
+    strengths.push('Demonstrates team collaboration');
+  } else if (percentage >= 40) {
+    strengths.push('Basic customer service awareness');
+    strengths.push('Willingness to help customers');
+    strengths.push('Team participation and effort');
+  } else {
+    strengths.push('Enthusiasm and positive attitude');
+    strengths.push('Room for tremendous growth');
+    strengths.push('Learning opportunity mindset');
+  }
+  
+  return strengths;
+}
+
+function getImprovements(percentage) {
+  const improvements = [];
+  
+  if (percentage >= 90) {
+    improvements.push('Continue mentoring other team members');
+    improvements.push('Explore advanced conflict resolution techniques');
+  } else if (percentage >= 75) {
+    improvements.push('Focus on empathy and emotional connection');
+    improvements.push('Enhance follow-up commitment strategies');
+  } else if (percentage >= 60) {
+    improvements.push('Develop more comprehensive action plans');
+    improvements.push('Strengthen accountability in responses');
+    improvements.push('Practice active listening techniques');
+  } else if (percentage >= 40) {
+    improvements.push('Work on professional communication tone');
+    improvements.push('Practice empathy and understanding skills');
+    improvements.push('Develop systematic problem-solving approach');
+  } else {
+    improvements.push('Focus on fundamental customer service principles');
+    improvements.push('Practice structured response frameworks');
+    improvements.push('Develop active listening and empathy skills');
+    improvements.push('Work on professional communication basics');
+  }
+  
+  return improvements;
+}
+
+function resetGame() {
+  gameState = {
+    team1Name: '',
+    team2Name: '',
+    team1Score: 0,
+    team2Score: 0,
+    currentTeam: 1,
+    round: 1,
+    usedCells: new Set(),
+    scenarios: [],
+    currentPhase: 'selection',
+    currentScenario: null,
+    currentCellNumber: null,
+    timer: null,
+    timeRemaining: 0,
+    // Reset detailed evaluation tracking
+    team1Evaluations: {
+      professionalism: 0,
+      empathy: 0,
+      actionplan: 0,
+      accountability: 0,
+      followup: 0,
+      totalScenarios: 0
+    },
+    team2Evaluations: {
+      professionalism: 0,
+      empathy: 0,
+      actionplan: 0,
+      accountability: 0,
+      followup: 0,
+      totalScenarios: 0
+    }
+  };
+  
+  team1Input.value = '';
+  team2Input.value = '';
+  document.getElementById('team1Score').textContent = '0';
+  document.getElementById('team2Score').textContent = '0';
+  
+  // Reset grid
+  document.querySelectorAll('.bingo-cell').forEach(cell => {
+    cell.classList.remove('selected', 'used');
+  });
+  
+  scenarioPanel.classList.add('hidden');
+  showScreen('startScreen');
+}
+
+// Start the game
+init();
+</script>
+</body>
+</html>
